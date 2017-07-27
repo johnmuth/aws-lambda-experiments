@@ -1,0 +1,83 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+
+  "Description": "dynamodb-trigger-1",
+
+  "Resources": {
+    "AWSLambdaExperimentsLambdaRole": {
+      "Type": "AWS::IAM::Role",
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            { "Effect": "Allow", "Principal": {"Service": ["lambda.amazonaws.com"]}, "Action": ["sts:AssumeRole"] }
+          ]
+        },
+        "Path": "/",
+        "Policies": [{
+          "PolicyName": "root",
+          "PolicyDocument": {
+            "Version": "2012-10-17",
+            "Statement": [
+              { "Effect": "Allow", "Action": ["lambda:*"], "Resource": "*" },
+              { "Effect": "Allow", "Action": ["dynamodb:*"], "Resource": "*" },
+              { "Effect": "Allow", "Action": ["logs:*"], "Resource": "arn:aws:logs:*:*:*" }
+            ]
+          }
+        }],
+        "RoleName" : "AWSLambdaExperimentsLambdaRole"
+      }
+    },
+    "DynamodbTrigger1Table" : {
+      "Type" : "AWS::DynamoDB::Table",
+      "Properties" : {
+        "AttributeDefinitions" : [
+          {
+            "AttributeName" : "Foo",
+            "AttributeType" : "S"
+          }
+        ],
+        "KeySchema" : [
+          {
+            "AttributeName" : "Foo",
+            "KeyType" : "HASH"
+          }
+        ],
+        "ProvisionedThroughput" : {
+          "ReadCapacityUnits" : "5",
+          "WriteCapacityUnits" : "5"
+        },
+        "TableName": "DynamodbTrigger1Table",
+        "StreamSpecification" : {
+          "StreamViewType" : "NEW_IMAGE"
+        }
+      }
+    },
+    "DynamodbTrigger1Lambda": {
+      "Type": "AWS::Lambda::Function",
+      "Properties": {
+        "Code": {
+          "S3Bucket": "aws-lambda-experiments",
+          "S3Key": "dynamodb-trigger-1.zip"
+        },
+        "Description": "Does thing",
+        "FunctionName": "DynamodbTrigger1",
+        "Handler": "dynamodb_trigger_1.handler",
+        "Role": { "Fn::GetAtt" : ["AWSLambdaExperimentsLambdaRole", "Arn"] },
+        "Runtime": "python3.6",
+        "MemorySize": 1536,
+        "Timeout": 3
+      }
+    },
+    "DynamodbTrigger1EventSourceMapping": {
+      "Type": "AWS::Lambda::EventSourceMapping",
+      "Properties": {
+        "BatchSize" : 1,
+        "EventSourceArn" : {"Fn::GetAtt": ["DynamodbTrigger1Table", "StreamArn"]},
+        "FunctionName" : { "Fn::GetAtt" : ["DynamodbTrigger1Lambda", "Arn"] },
+        "StartingPosition": "TRIM_HORIZON"
+      },
+      "DependsOn": [ "DynamodbTrigger1Lambda" ]
+    }
+  }
+}
