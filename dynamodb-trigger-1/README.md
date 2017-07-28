@@ -80,11 +80,15 @@ You should see a line like:
 
 #### 4. Add the same row again, check the logs again
 
-*(Repeat "add row to table" command above.)*
+Repeat the "add row to table" command above.
 
-*(Repeat "Check lambda logs" command above.)*
+Repeat the "Check lambda logs" command above.
 
-The lambda is not triggered by adding the same data after the first time.
+You should NOT see a new log line. 
+
+Therefore the lambda was not triggered by adding the same data a second time.
+
+However if you add a row with a new value for "Foo", you will see it logged.
 
 ## Cleaning up
 
