@@ -16,8 +16,8 @@ I assumed it would, but I could swear I've seen times when it did not, but I'm n
 
 It doesn't do much:
 
-    * reads the DynamoDB Event object provided to it when it's invoked by the trigger,
-    * logs the value of "Foo"
+* reads the DynamoDB Event object provided to it when it's invoked by the trigger,
+* logs the value of "Foo"
 
 #### 2. the cloudformation.json
 
