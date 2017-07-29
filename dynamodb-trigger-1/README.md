@@ -84,15 +84,31 @@ Repeat the "add row to table" command above.
 
 Repeat the "Check lambda logs" command above.
 
-You should NOT see a new log line. 
+The lambda is not triggered by adding the same data a second time.
 
-Therefore the lambda was not triggered by adding the same data a second time.
+#### 5. same "Key" attribute, but different other attributes
 
-However if you add a row with a new value for "Foo", you will see it logged.
+"Foo" is the "Key" attribute in our table - declared in our [./cloudformation.json](./cloudformation.json). It's the equivalent of "PRIMARY KEY" constraint in some SQL dialects.
+
+We can also add arbitrary additional fields when writing data to DynamoDB.
+
+What if we do this:
+
+```bash
+aws dynamodb put-item --table-name DynamodbTrigger1Table --item '{ "Foo": { "S": "zoo" }, "Goo": { "S": "abc" } }'
+aws dynamodb put-item --table-name DynamodbTrigger1Table --item '{ "Foo": { "S": "zoo" }, "Goo": { "S": "xyz" } }'
+```
+
+Will our lambda be triggered by the second command?
+Maybe not: the value of "Foo" is "zoo" in both.
+But in fact yes, the lambda is triggered twice.
+DynamoDB considers entire record, not only the "Key" attribute(s), when determining whether to emit an event.
 
 ## Cleaning up
 
 ```bash
-aws cloudformation delete-stack --stack-name dynamodb-trigger-1-stack && \
+aws logs delete-log-group --log-group-name '/aws/lambda/DynamodbTrigger1' && \
+  aws cloudformation delete-stack --stack-name dynamodb-trigger-1-stack && \
   aws cloudformation wait stack-delete-complete --stack-name dynamodb-trigger-1-stack
 ```
+
